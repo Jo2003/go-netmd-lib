@@ -137,12 +137,19 @@ func (md *NetMD) RequestDiscCapacity() (recorded uint64, total uint64, available
 }
 
 // SetDiscHeader will write  a raw title to the disc
-func (md *NetMD) SetDiscHeader(t string) error {
+func (md *NetMD) SetDiscHeader(t string, r ... bool) error {
 	md.poll()
 	o, err := md.RequestDiscHeader()
 	if err != nil {
 		return err
 	}
+
+	raw := true
+
+	if len(r) > 0 {
+		raw := r[0]
+	}
+
 	j := len(o) // length of old title
 	h := len(t) // length of new title
 	c := []byte{0x00, 0x00, 0x30, 0x00, 0x0a, 0x00, 0x50, 0x00}
@@ -150,11 +157,16 @@ func (md *NetMD) SetDiscHeader(t string) error {
 	c = append(c, 0x00, 0x00)
 	c = append(c, intToHex16(int16(j))...)
 	c = append(c, []byte(t)...)
-	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x01}, []byte{0x00})
-	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x00}, []byte{0x00})
-	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00})
+
+	if raw == true {
+		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x01}, []byte{0x00})
+		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x00}, []byte{0x00})
+		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00})
+	}
 	_, err = md.submit(ControlAccepted, []byte{0x18, 0x07, 0x02, 0x20, 0x18, 0x01}, c) // actual call
-	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x00}, []byte{0x00})
+	if raw == true {
+		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x00}, []byte{0x00})
+	}
 	if err != nil {
 		return err
 	}
