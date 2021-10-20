@@ -144,7 +144,7 @@ func (md *NetMD) SetDiscHeader(t string, r ... bool) error {
 		return err
 	}
 
-	raw := true
+	var raw := true
 
 	if len(r) > 0 {
 		raw := r[0]
