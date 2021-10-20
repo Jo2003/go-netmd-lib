@@ -270,7 +270,7 @@ func (md *NetMD) EraseTrack(trk int) error {
 }
 
 // EraseDisc will erase the whole disc
-func (md *NetMD) EraseTrack() error {
+func (md *NetMD) EraseDisc() error {
 	_, err := md.submit(ControlAccepted, []byte{0x18, 0x40}, []byte{0xff, 0x00, 0x00})
 	if err != nil {
 		return err
