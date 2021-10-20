@@ -269,6 +269,15 @@ func (md *NetMD) EraseTrack(trk int) error {
 	return nil
 }
 
+// EraseDisc will erase the whole disc
+func (md *NetMD) EraseTrack() error {
+	_, err := md.submit(ControlAccepted, []byte{0x18, 0x40}, []byte{0xff, 0x00, 0x00})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // MoveTrack will move the trk number to a new position
 func (md *NetMD) MoveTrack(trk, to int) error {
 	s := []byte{0xff, 0x00, 0x00, 0x20, 0x10, 0x01}
