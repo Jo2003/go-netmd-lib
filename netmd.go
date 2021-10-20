@@ -173,8 +173,8 @@ func (md *NetMD) SetDiscTitle(t string) error {
 	h := len(t) // length of new title
 
 	if md.debug {
-		log.Pintf("Old title '%s' has a length of %d bytes!", o, j)
-		log.Pintf("New title '%s' has a length of %d bytes!", t, h)
+		log.Printf("Old title '%s' has a length of %d bytes!", o, j)
+		log.Printf("New title '%s' has a length of %d bytes!", t, h)
 	}
 
 	c := []byte{0x00, 0x00, 0x30, 0x00, 0x0a, 0x00, 0x50, 0x00}
