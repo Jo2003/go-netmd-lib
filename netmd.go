@@ -144,10 +144,10 @@ func (md *NetMD) SetDiscHeader(t string, r ... bool) error {
 		return err
 	}
 
-	var raw := true
+	raw := true
 
 	if len(r) > 0 {
-		raw := r[0]
+		raw = r[0]
 	}
 
 	j := len(o) // length of old title
