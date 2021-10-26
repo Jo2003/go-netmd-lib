@@ -93,6 +93,9 @@ func (md *NetMD) NewTrack(title string, fileName string) (trk *Track, err error)
 		if bitsPerSample == 384 {
 			trk.Format = WfLP2
 			trk.DiscFormat = DfLP2
+		} else if bitsPerSample == 192 {
+			trk.Format = WfLP4
+			trk.DiscFormat = DfLP4
 		} else {
 			return nil, errors.New("atrac3: block size not supported")
 		}
@@ -100,7 +103,7 @@ func (md *NetMD) NewTrack(title string, fileName string) (trk *Track, err error)
 		if sampleRate != 44100 || bitsPerSample != 16 {
 			return nil, errors.New("pcm: sample rate must be 44100 @ 16 bits")
 		}
-		if channelNum != 1 {
+		if channelNum == 1 {
 			trk.DiscFormat = DfMonoSP
 		}
 	default:
@@ -152,7 +155,8 @@ func (md *NetMD) NewTrack(title string, fileName string) (trk *Track, err error)
 	case WfLP2:
 		break
 	case WfLP4:
-		return nil, errors.New("WireFormat LP4 is currently not supported")
+		break
+		// return nil, errors.New("WireFormat LP4 is currently not supported")
 	}
 
 	// add padding when data length does not fit the frame size
