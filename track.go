@@ -156,7 +156,6 @@ func (md *NetMD) NewTrack(title string, fileName string) (trk *Track, err error)
 		break
 	case WfLP4:
 		break
-		// return nil, errors.New("WireFormat LP4 is currently not supported")
 	}
 
 	// add padding when data length does not fit the frame size
