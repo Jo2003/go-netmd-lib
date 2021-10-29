@@ -3,9 +3,10 @@ package netmd
 import (
 	"bytes"
 	"errors"
-	"github.com/enimatek-nl/gousb"
 	"log"
 	"time"
+
+	"github.com/enimatek-nl/gousb"
 )
 
 type NetMD struct {
@@ -15,6 +16,7 @@ type NetMD struct {
 	ctx   *gousb.Context
 	out   *gousb.OutEndpoint
 	ekb   *EKB
+	CDev  *gousb.Device
 }
 
 type Encoding byte
@@ -74,6 +76,9 @@ func NewNetMD(index int, debug bool) (md *NetMD, err error) {
 		err = errors.New("no compatible netmd device found or incorrect index")
 		return
 	}
+
+	// export current device
+	md.CDev = md.devs[md.index]
 
 	for num := range md.devs[md.index].Desc.Configs {
 		config, _ := md.devs[md.index].Config(num)
@@ -182,7 +187,7 @@ func (md *NetMD) SetDiscTitle(t string) error {
 	c = append(c, 0x00, 0x00)
 	c = append(c, intToHex16(int16(j))...)
 	c = append(c, []byte(t)...)
-	if md.devs[md.index].vendorId == 0x04dd { // SHARP needs another open command
+	if md.devs[md.index].Desc.Vendor == 0x04dd { // SHARP needs another open command
 		log.Printf("Open header for SHARP device!")
 		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x03}, []byte{0x00}) // open for write
 	} else {
@@ -190,7 +195,7 @@ func (md *NetMD) SetDiscTitle(t string) error {
 		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00}) // open for write
 	}
 
-	_, err = md.submit(ControlAccepted, []byte{0x18, 0x07, 0x02, 0x20, 0x18, 0x01}, c) // actual call
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x07, 0x02, 0x20, 0x18, 0x01}, c)            // actual call
 	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x00}, []byte{0x00}) // close
 
 	if err != nil {
