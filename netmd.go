@@ -187,11 +187,10 @@ func (md *NetMD) SetDiscTitle(t string) error {
 	c = append(c, 0x00, 0x00)
 	c = append(c, intToHex16(int16(j))...)
 	c = append(c, []byte(t)...)
+
 	if md.devs[md.index].Desc.Vendor == 0x04dd { // SHARP needs another open command
-		log.Printf("Open header for SHARP device!")
 		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x03}, []byte{0x00}) // open for write
 	} else {
-		log.Printf("Open header for other device!")
 		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00}) // open for write
 	}
 
