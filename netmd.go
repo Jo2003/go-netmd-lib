@@ -27,6 +27,8 @@ type Control byte
 
 type TrackProt byte
 
+type WhichTime byte
+
 const (
 	EncSP  Encoding = 0x90
 	EncLP2 Encoding = 0x92
@@ -42,7 +44,18 @@ const (
 
 	TrackProtected   TrackProt = 0x03
 	TrackUnprotected TrackProt = 0x00
+
+	Total     WhichTime = 0x01
+	Recorded  WhichTime = 0x02
+	Available WhichTime = 0x03
 )
+
+type NetMD_Time struct {
+	Hour   uint16
+	Minute uint8
+	Second uint8
+	Frame  uint8
+}
 
 var (
 	ByteArr16 = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
@@ -138,6 +151,32 @@ func (md *NetMD) RequestDiscCapacity() (recorded uint64, total uint64, available
 	recorded = (hexToInt(r[29]) * 3600) + (hexToInt(r[30]) * 60) + hexToInt(r[31])
 	total = (hexToInt(r[35]) * 3600) + (hexToInt(r[36]) * 60) + hexToInt(r[37])
 	available = (hexToInt(r[42]) * 3600) + (hexToInt(r[43]) * 60) + hexToInt(r[44])
+	return
+}
+
+// RequestDiscTimes returns the totals in seconds
+func (md *NetMD) RequestDiscTime(which WhichTime) (time NetMD_Time, err error) {
+	r, err := md.submit(ControlAccepted, []byte{0x18, 0x06, 0x02, 0x10, 0x10, 0x00}, []byte{0x30, 0x80, 0x03, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00})
+	if err != nil {
+		return
+	}
+
+	var offset int
+
+	switch which {
+	case Total:
+		offset = 34
+	case Available:
+		offset = 41
+	case Recorded:
+		offset = 27
+	}
+
+	time.Hour = uint16(r[offset])<<8 | uint16(r[offset+1])
+	time.Minute = r[offset+2]
+	time.Second = r[offset+3]
+	time.Frame = r[offset+4]
+
 	return
 }
 
