@@ -199,17 +199,6 @@ func (md *NetMD) SetDiscTitle(t string) error {
 
 	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x00}, []byte{0x00})
 
-	/*
-		if md.devs[md.index].Desc.Vendor == 0x04dd { // SHARP needs another open command
-			_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x03}, []byte{0x00}) // open for write
-		} else {
-			_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00}) // open for write
-		}
-
-		_, err = md.submit(ControlAccepted, []byte{0x18, 0x07, 0x02, 0x20, 0x18, 0x01}, c)            // actual call
-		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x00}, []byte{0x00}) // close
-	*/
-
 	if err != nil {
 		return err
 	}
