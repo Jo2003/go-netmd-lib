@@ -144,11 +144,12 @@ func (md *NetMD) Wait() error {
 
 // RequestDiscCapacity returns the totals in seconds
 func (md *NetMD) RequestDiscCapacity() (recorded uint64, total uint64, available uint64, err error) {
-	r, err := md.submit(ControlAccepted, []byte{0x18, 0x06, 0x02, 0x10, 0x10, 0x00}, []byte{0x30, 0x80, 0x03, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00})
+	r, err := md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x10, 0x00, 0x01}, []byte{0x00})
+	r, err = md.submit(ControlAccepted, []byte{0x18, 0x06, 0x02, 0x10, 0x10, 0x00}, []byte{0x30, 0x80, 0x03, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00})
 	if err != nil {
 		return
 	}
-	recorded = (hexToInt(r[29]) * 3600) + (hexToInt(r[30]) * 60) + hexToInt(r[31])
+	recorded = (hexToInt(r[28]) * 3600) + (hexToInt(r[29]) * 60) + hexToInt(r[30])
 	total = (hexToInt(r[35]) * 3600) + (hexToInt(r[36]) * 60) + hexToInt(r[37])
 	available = (hexToInt(r[42]) * 3600) + (hexToInt(r[43]) * 60) + hexToInt(r[44])
 	return
@@ -156,7 +157,8 @@ func (md *NetMD) RequestDiscCapacity() (recorded uint64, total uint64, available
 
 // RequestDiscTimes returns the totals in seconds
 func (md *NetMD) RequestDiscTime(which WhichTime) (time NetMD_Time, err error) {
-	r, err := md.submit(ControlAccepted, []byte{0x18, 0x06, 0x02, 0x10, 0x10, 0x00}, []byte{0x30, 0x80, 0x03, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00})
+	r, err := md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x10, 0x00, 0x01}, []byte{0x00})
+	r, err = md.submit(ControlAccepted, []byte{0x18, 0x06, 0x02, 0x10, 0x10, 0x00}, []byte{0x30, 0x80, 0x03, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00})
 	if err != nil {
 		return
 	}
@@ -227,14 +229,26 @@ func (md *NetMD) SetDiscTitle(t string) error {
 	c = append(c, intToHex16(int16(j))...)
 	c = append(c, []byte(t)...)
 
-	if md.devs[md.index].Desc.Vendor == 0x04dd { // SHARP needs another open command
-		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x03}, []byte{0x00}) // open for write
-	} else {
-		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00}) // open for write
-	}
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x03}, []byte{0x00})
 
-	_, err = md.submit(ControlAccepted, []byte{0x18, 0x07, 0x02, 0x20, 0x18, 0x01}, c)            // actual call
-	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x00}, []byte{0x00}) // close
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x01}, []byte{0x00})
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x00}, []byte{0x00})
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00})
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x07, 0x02, 0x20, 0x18, 0x01}, c) // actual call
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x00}, []byte{0x00})
+
+	_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x00}, []byte{0x00})
+
+	/*
+		if md.devs[md.index].Desc.Vendor == 0x04dd { // SHARP needs another open command
+			_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x03}, []byte{0x00}) // open for write
+		} else {
+			_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x01, 0x03}, []byte{0x00}) // open for write
+		}
+
+		_, err = md.submit(ControlAccepted, []byte{0x18, 0x07, 0x02, 0x20, 0x18, 0x01}, c)            // actual call
+		_, err = md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x18, 0x02, 0x00}, []byte{0x00}) // close
+	*/
 
 	if err != nil {
 		return err
@@ -378,7 +392,8 @@ func (md *NetMD) RequestTrackLength(trk int) (duration uint64, err error) {
 	s := []byte{0x02, 0x20, 0x10, 0x01}
 	s = append(s, intToHex16(int16(trk))...)
 	s = append(s, 0x30, 0x00, 0x01, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00)
-	r, err := md.submit(ControlAccepted, []byte{0x18, 0x06}, s)
+	r, err := md.submit(ControlAccepted, []byte{0x18, 0x08, 0x10, 0x10, 0x01, 0x01}, []byte{0x00})
+	r, err = md.submit(ControlAccepted, []byte{0x18, 0x06}, s)
 	if err != nil {
 		return
 	}
@@ -412,6 +427,7 @@ func (md *NetMD) submit(control Control, check []byte, payload []byte) ([]byte, 
 }
 
 func (md *NetMD) receive(control Control, check []byte, c chan Transfer) ([]byte, error) {
+	wait := time.Duration(5)
 	for tries := 0; tries < 300; tries++ {
 		if c != nil {
 			c <- Transfer{
@@ -459,7 +475,12 @@ func (md *NetMD) receive(control Control, check []byte, c chan Transfer) ([]byte
 				}
 			}
 		}
-		time.Sleep(time.Millisecond * 100)
+
+		if tries > 10 {
+			wait = 100
+		}
+
+		time.Sleep(time.Millisecond * wait)
 	}
 	return nil, errors.New("no data matched check, timed out")
 }
