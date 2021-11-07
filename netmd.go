@@ -376,7 +376,6 @@ func (md *NetMD) submit(control Control, check []byte, payload []byte) ([]byte, 
 }
 
 func (md *NetMD) receive(control Control, check []byte, c chan Transfer) ([]byte, error) {
-	wait := time.Duration(5)
 	for tries := 0; tries < 300; tries++ {
 		if c != nil {
 			c <- Transfer{
@@ -424,12 +423,7 @@ func (md *NetMD) receive(control Control, check []byte, c chan Transfer) ([]byte
 				}
 			}
 		}
-
-		if tries > 10 {
-			wait = 100
-		}
-
-		time.Sleep(time.Millisecond * wait)
+		time.Sleep(time.Millisecond * 100)
 	}
 	return nil, errors.New("no data matched check, timed out")
 }
